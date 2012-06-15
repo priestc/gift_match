@@ -1,6 +1,6 @@
 from __future__ import print_function
-
 from collections import defaultdict
+
 class TubeSet(object):
     """
     Class for mixing items from a set into a one dimentional list so that no two
@@ -108,28 +108,9 @@ class TubeSet(object):
             self.output.append(item)        
         return {'rejects': rejects, 'sorted': self.output}
 
-
 class CountryTubeSet(TubeSet):
     def differentiator(self, obj):
         return obj.country
-
-
-# if __name__ == '__main__':
-#     ts = TestTubeSet('aXaaaaaaaaaaaaaaaaaaaaaaaaaa')
-#     rejects = ts.pop_rejects()
-#     assert len(rejects) == 25
-#    
-#     ts = TestTubeSet('aXaaaaa')
-#     rejects = ts.pop_rejects()
-#     assert len(rejects) == 4
-# 
-#     ts = TestTubeSet('aXaXaXaXaa')
-#     rejects = ts.pop_rejects()
-#     assert len(rejects) == 1
-# 
-#     ts = TestTubeSet('aXaXaXaXa')
-#     rejects = ts.pop_rejects()
-#     assert len(rejects) == 0
 
 class User(object):
     def __init__(self, id, country, international):
@@ -162,7 +143,7 @@ class GiftLink(object):
         self.user2 = user2
     
     def as_list(self):
-        return '[%s, %s]' % (self.user1.__repr__(), self.user2.__repr__())
+        return '[%s -> %s]' % (self.user1.__repr__(), self.user2.__repr__())
         
 class Circle(object):
     """
@@ -250,6 +231,33 @@ class InternationalCircle(Circle):
     def __repr__(self):
         return "<International Circle: (%s users)>" % len(self.userlist)
 
+def add_international_rejects_to_domestic_circle(rejects, domestic_circles):
+    """
+    Given a group of international rejects (users who want to match up with other
+    international users, but can't because they belong to a country that makes up
+    more than 50% of total international circle users)
+
+    Add these users to the domestic appropriate circle.
+    """
+    # the country where all international rejects come from
+    reject_country = rejects[0].country
+
+    found = False
+    for circle in domestic_circles:
+        # go through each domestic circle, until we find the right one, and
+        # add all users to that circle.
+        if circle.country == reject_country:
+            circle.add_to_circle(rejects)
+            found = True
+
+    if not found:
+        # for some reason, a domestic circle does not exist for the international
+        # rejects, create one.
+        circle = DomesticCircle(reject_country, rejects)
+        circles.append(circle)
+
+    return circles
+
 def to_userlist(input):
     """
     Converts input list into a list of User objects.
@@ -267,6 +275,26 @@ def to_userlist(input):
     return users
 
 if __name__ == '__main__':
+
+    class TestTubeSet(TubeSet):
+        def differentiator(self, obj):
+            return obj
+
+    ts = TestTubeSet('aXaaaaaaaaaaaaaaaaaaaaaaaaaa')
+    rejects = ts.pop_rejects()
+    assert len(rejects) == 25
+
+    ts = TestTubeSet('aXaaaaa')
+    rejects = ts.pop_rejects()
+    assert len(rejects) == 4
+
+    ts = TestTubeSet('aXaXaXaXaa')
+    rejects = ts.pop_rejects()
+    assert len(rejects) == 1
+
+    ts = TestTubeSet('aXaXaXaXa')
+    rejects = ts.pop_rejects()
+    assert len(rejects) == 0
 
     input_ = [
         (1, 'usa', True),
@@ -338,31 +366,3 @@ if __name__ == '__main__':
 
     print("--International Circle--")
     [print(x.as_list()) for x in international_circle.rotate()]
-
-
-def add_international_rejects_to_domestic_circle(rejects, domestic_circles):
-    """
-    Given a group of international rejects (users who want to match up with other
-    international users, but can't because they belong to a country that makes up
-    more than 50% of total international circle users)
-    
-    Add these users to the domestic appropriate circle.
-    """
-    # the country where all international rejects come from
-    reject_country = rejects[0].country
-
-    found = False
-    for circle in domestic_circles:
-        # go through each domestic circle, until we find the right one, and
-        # add all users to that circle.
-        if circle.country == reject_country:
-            circle.add_to_circle(rejects)
-            found = True
-    
-    if not found:
-        # for some reason, a domestic circle does not exist for the international
-        # rejects, create one.
-        circle = DomesticCircle(reject_country, rejects)
-        circles.append(circle)
-    
-    return circles
