@@ -43,6 +43,9 @@ class TubeSet(object):
         return [] # no rejects
         
     def differentiator(self, obj):
+        """
+        Define the thing that makes each item's differentiating characteristic
+        """
         # must be defined in a subclass
         raise NotImplementedError
     
@@ -82,14 +85,6 @@ class TubeSet(object):
             non_highest = set(tube_lens.keys()) - set(highest_key)
             return non_highest.pop()
     
-    def _pop_from(self, highest):
-        if highest:
-            highest = self.get_tube_key(highest=True)
-            return self.tubes[highest].pop()
-        else:
-            any_tube = self.get_tube_key(highest=False)
-            return self.tubes[any_tube].pop()
-    
     def pop(self):
         if not self.output:
             previous_highest = False
@@ -98,7 +93,9 @@ class TubeSet(object):
             previous_key = self.differentiator(previous)
             previous_highest = previous_key == self.get_tube_key()
         
-        return self._pop_from(highest=not previous_highest)
+        this_heighest = not previous_highest # rotate each iteration
+        item = self.get_tube_key(highest=this_heighest)
+        return self.tubes[item].pop()
     
     def get_output(self):
         rejects = self.pop_rejects()
